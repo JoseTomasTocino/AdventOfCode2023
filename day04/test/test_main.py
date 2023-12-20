@@ -16,8 +16,8 @@ Card 6: 31 18 13 56 72 | 74 77 10 23 35 67 36 11"""
 def test_sample_input(caplog):
     caplog.set_level(logging.INFO)
 
-    assert part_one(sample_input) == 13
-    #assert part_two(sample_input) == None
+    #assert part_one(sample_input) == 13
+    assert part_two(sample_input) == 30
 
 
 def test_big_input(caplog):
@@ -26,4 +26,4 @@ def test_big_input(caplog):
         content = f.read()
 
         assert part_one(content) == 15268
-        # assert part_two(content) == None
+        assert part_two(content) == 6283755
