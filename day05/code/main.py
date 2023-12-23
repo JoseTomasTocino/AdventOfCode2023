@@ -73,8 +73,6 @@ def part_one(inp: str, seeds_as_ranges: bool = False):
         #     logger.info(the_map.ranges[i].end - the_map.ranges[i+1].start)
 
     if seeds_as_ranges:
-        candidate_seeds = []
-
         # Sort input seed ranges
         input_ranges = [(x, x + y - 1) for x, y in sorted(zip(seeds[::2], seeds[1::2]), key=lambda x: x[0])]
 
@@ -86,26 +84,25 @@ def part_one(inp: str, seeds_as_ranges: bool = False):
             for first_seed, last_seed in input_ranges:
                 logger.info(f"\tInput seed range: from {first_seed} to {last_seed}")
 
-                # First check the seeds with values below any range in the mapping
-                if first_seed < the_map.ranges[0].start:
-                    logger.info(f"\t\tInput seed range starts below the first range: {first_seed}")
-                    candidate_seeds.append(first_seed)
-
-                    # If this seed range ends before reaching any of the mapping ranges, jump to the next input seed range
-                    if last_seed < the_map.ranges[0].start:
-                        logger.info(f"\t\tInput seed range ends below the first range: {last_seed}")
-                        new_input_ranges.append((first_seed, last_seed))
-                        continue
-
-                    else:
-                        new_input_ranges.append((first_seed, the_map.ranges[0].start - 1))
-                        first_seed = the_map.ranges[0].start
-
-                    logger.info(f"\t\tAdded new splitted range (before mapping): {new_input_ranges[-1]}")
-
                 # At this point we're sure this input range enters, at least, in to any of the ranges of the mapping!
                 for the_range in the_map.ranges:
                     logger.info(f"\t\tComparing input seed range ({first_seed}, {last_seed}) against mapping range from {the_range.start} to {the_range.end} (delta = {the_range.delta})")
+
+                    # Check if the seeds are below the range
+                    if first_seed < the_range.start:
+                        logger.info(f"\t\tInput seed range starts below the range: {first_seed}")
+
+                        # If this seed range ends before the range, jump to the next input seed range
+                        if last_seed < the_range.start:
+                            logger.info(f"\t\tInput seed range ends below the range: {last_seed}")
+                            new_input_ranges.append((first_seed, last_seed))
+                            break
+
+                        else:
+                            new_input_ranges.append((first_seed, the_range.start - 1))
+                            first_seed = the_range.start
+
+                        logger.info(f"\t\tAdded new splitted range (before current range): {new_input_ranges[-1]}")
 
                     if the_range.start <= first_seed <= the_range.end:
                         if last_seed <= the_range.end:
