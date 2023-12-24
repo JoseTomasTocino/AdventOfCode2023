@@ -6,7 +6,7 @@ logger = logging.getLogger(__name__)
 local_path = os.path.abspath(os.path.dirname(__file__))
 
 
-sample_input2 = """seeds: 0 101
+sample_input2 = """seeds: 0 10 20 10 50 10 60 10
 
 seed-to-soil map:
 21 20 31
