@@ -20,6 +20,9 @@ class MappingRange:
         self.rstart = self.start + self.delta
         self.rend = self.end + self.delta
 
+    def __str__(self):
+        return f"({self.start:_}, {self.end:_})"
+
 
 class Mapping:
     def __init__(self, name=""):
@@ -66,9 +69,9 @@ def part_one(inp: str, seeds_as_ranges: bool = False):
 
         the_map.sort_ranges()
 
-        logger.info(f"Read mapping: {the_map.name}")
-        for r in the_map.ranges:
-            logger.info(f"\t- {r.start} to {r.end} (delta = {r.delta})")
+        # logger.info(f"Read mapping: {the_map.name}")
+        # for r in the_map.ranges:
+        #     logger.info(f"\t- {r.start} to {r.end} (delta = {r.delta})")
         # for i in range(len(the_map.ranges) - 1):
         #     logger.info(the_map.ranges[i].end - the_map.ranges[i+1].start)
 
@@ -82,37 +85,37 @@ def part_one(inp: str, seeds_as_ranges: bool = False):
             new_input_ranges = []
 
             for first_seed, last_seed in input_ranges:
-                logger.info(f"\tInput seed range: from {first_seed} to {last_seed}")
+                logger.info(f"\tInput seed range: from {first_seed:_} to {last_seed:_} ({last_seed - first_seed:_} elements)")
 
-                # At this point we're sure this input range enters, at least, in to any of the ranges of the mapping!
                 for the_range in the_map.ranges:
-                    logger.info(f"\t\tComparing input seed range ({first_seed}, {last_seed}) against mapping range from {the_range.start} to {the_range.end} (delta = {the_range.delta})")
+                    logger.info(f"\t\tComparing input seed range ({first_seed:_}, {last_seed:_}) against mapping range {the_range} (delta = {the_range.delta})")
 
                     # Check if the seeds are below the range
                     if first_seed < the_range.start:
-                        logger.info(f"\t\tInput seed range starts below the range: {first_seed}")
+                        logger.info(f"\t\t\tInput seed range starts below the range: {first_seed}")
 
                         # If this seed range ends before the range, jump to the next input seed range
                         if last_seed < the_range.start:
-                            logger.info(f"\t\tInput seed range ends below the range: {last_seed}")
+                            logger.info(f"\t\t\tInput seed range ends below the range: {last_seed}")
                             new_input_ranges.append((first_seed, last_seed))
                             break
 
                         else:
+                            logger.info(f"\t\t\tInput seed range enters the range: {last_seed}")
                             new_input_ranges.append((first_seed, the_range.start - 1))
                             first_seed = the_range.start
 
-                        logger.info(f"\t\tAdded new splitted range (before current range): {new_input_ranges[-1]}")
+                        logger.info(f"\t\t\tAdded new splitted range (before current range): {new_input_ranges[-1]}")
 
                     if the_range.start <= first_seed <= the_range.end:
                         if last_seed <= the_range.end:
                             new_input_ranges.append((the_map[first_seed], the_map[last_seed]))
-                            logger.info(f"\t\tAdded new splitted range: ({first_seed}, {last_seed}), processed = {new_input_ranges[-1]}")
+                            logger.info(f"\t\t\tAdded new splitted range: ({first_seed:_}, {last_seed:_}), processed = {new_input_ranges[-1]}")
                             break
 
                         else:
                             new_input_ranges.append((the_map[first_seed], the_map[the_range.end]))
-                            logger.info(f"\t\tAdded new splitted range: ({first_seed}, {the_range.end}), processed = {new_input_ranges[-1]}")
+                            logger.info(f"\t\t\tAdded new splitted range: ({first_seed:_}, {the_range.end:_}), processed = {new_input_ranges[-1]}")
                             first_seed = the_range.end + 1
 
                 # Finally, check for seeds that overflow past the ranges in the mapping

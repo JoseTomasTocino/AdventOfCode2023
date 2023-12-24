@@ -69,8 +69,8 @@ def test_sample_input(caplog):
     caplog.set_level(logging.INFO)
 
     # assert part_one(sample_input) == 35
-    assert part_two(sample_input) == 46
-    # assert part_two(sample_input2) == 46
+    # assert part_two(sample_input) == 46
+    assert part_two(sample_input2) == 46
 
 
 def test_big_input(caplog):
