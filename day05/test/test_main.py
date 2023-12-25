@@ -5,14 +5,11 @@ from ..code.main import part_one, part_two, Mapping
 logger = logging.getLogger(__name__)
 local_path = os.path.abspath(os.path.dirname(__file__))
 
-
-sample_input2 = """seeds: 0 10 20 10 50 10 60 10
+sample_input2 = """seeds: 15 31
 
 seed-to-soil map:
-21 20 31
-61 60 31"""
-
-
+5 10 11
+30 21 9"""
 
 sample_input = """seeds: 79 14 55 13
 
@@ -68,9 +65,9 @@ def test_range_map(caplog):
 def test_sample_input(caplog):
     caplog.set_level(logging.INFO)
 
-    # assert part_one(sample_input) == 35
-    # assert part_two(sample_input) == 46
-    assert part_two(sample_input2) == 46
+    assert part_one(sample_input) == 35
+    assert part_two(sample_input) == 46
+    # assert part_two(sample_input2) == 46
 
 
 def test_big_input(caplog):
@@ -78,5 +75,5 @@ def test_big_input(caplog):
     with open(os.path.join(local_path, "input"), "r") as f:
         content = f.read()
 
-        # assert part_one(content) == 424490994
-        assert part_two(content) == None
+        assert part_one(content) == 424490994
+        assert part_two(content) == 15290096

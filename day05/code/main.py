@@ -15,20 +15,32 @@ class Range:
     def __str__(self):
         return f"({self.start:_}, {self.end:_})"
 
-    def cut(self, other):
+    def __repr__(self):
+        return f"({self.start:_}, {self.end:_})"
+
+    def collides_with(self, other_range):
+        return self.end >= other_range.start and other_range.end >= self.start
+
+    def contained_within(self, other_range):
+        return other_range.start <= self.start <= other_range.end and \
+            other_range.start <= self.end <= other_range.end
+
+    def split(self, subject):
+
+        if subject.end < self.start or self.end < subject.start:
+            return [subject]
+
         cuts = []
 
-        if other.start < self.start:
-            cuts.append(Range(other.start, min(other.end, self.start - 1)))
+        if subject.start < self.start:
+            cuts.append(Range(subject.start, self.start - 1))
+            cuts.append(Range(self.start, min(self.end, subject.end)))
 
-            if other.end >= self.start:
-                cuts.append(Range(self.start, min(other.end, self.end)))
+        else:
+            cuts.append(Range(subject.start, min(self.end, subject.end)))
 
-        if other.end > self.end:
-            cuts.append(Range(max(self.end + 1, other.start), other.end))
-
-        if not cuts:
-            cuts = [other]
+        if self.end < subject.end:
+            cuts.append(Range(self.end + 1, subject.end))
 
         return cuts
 
@@ -61,8 +73,6 @@ class Mapping:
         self.ranges = list(sorted(self.ranges, key=lambda x: x.start))
 
 
-
-
 def part_one(inp: str, seeds_as_ranges: bool = False):
     inp = inp.splitlines()
 
@@ -86,96 +96,91 @@ def part_one(inp: str, seeds_as_ranges: bool = False):
 
         the_map.sort_ranges()
 
-        logger.info(f"Read mapping: {the_map.name}")
-        for r in the_map.ranges:
-            logger.info(f"\t- {r.start} to {r.end} (delta = {r.delta})")
+    # Postprocess mappings to fill holes
+    for the_map in maps:
         for i in range(len(the_map.ranges) - 1):
-            logger.info(the_map.ranges[i].end - the_map.ranges[i + 1].start)
+            if the_map.ranges[i + 1].start - the_map.ranges[i].end > 1:
+                the_map.add_range(the_map.ranges[i].end + 1, the_map.ranges[i].end + 1, the_map.ranges[i + 1].start - 1 - the_map.ranges[i].end)
+                logger.info(f"Filling hole in map {the_map.name} with range: {(the_map.ranges[i].end + 1, the_map.ranges[i + 1].start - 1)}")
+                logger.info(the_map.ranges[i])
+                logger.info(the_map.ranges[-1])
+                logger.info(the_map.ranges[i+1])
+
+        the_map.sort_ranges()
+
+    for the_map in maps:
+        logger.info(f"Reviewing map {the_map.name}")
+        for i in range(len(the_map.ranges)):
+            if i == 0:
+                logger.info(f"\tRange: {the_map.ranges[i]}")
+            else:
+                logger.info(f"\tRange: {the_map.ranges[i]} - from prev: {the_map.ranges[i].start - the_map.ranges[i-1].end}")
+
+    locations = []
 
     if seeds_as_ranges:
         # Sort input seed ranges
-        initial_input_ranges = [Range(x, x + y - 1) for x, y in sorted(zip(seeds[::2], seeds[1::2]), key=lambda x: x[0])]
+        initial_input_ranges = [Range(x, x + y - 1) for x, y in zip(seeds[::2], seeds[1::2])]
         final_ranges = []
 
-        for seed in initial_input_ranges:
-            logger.info(f"Input seed range: {seed} ")
+        for seed_range in initial_input_ranges:
+            logger.info(f"Input seed range: {seed_range} ")
 
-            input_ranges = [(seed_start, seed_end)]
+            input_ranges = [seed_range]
+
             processed_input_ranges = []
+            unprocessed_input_ranges = []
 
-            for the_map in maps:
-                logger.info(f"Processing map: {the_map.name}")
+            for i_map, the_map in enumerate(maps):
+                logger.info("-------------------------------------------------------------------")
+                logger.info(f"Processing map {i_map + 1}: {the_map.name}")
+
+                logger.info(f"Initial inputs: {input_ranges}")
 
                 for the_range in the_map.ranges:
                     logger.info(f"\tProcessing range: {the_range}")
 
-                    unprocessed_input_ranges = []
-
-                    if not input_ranges:
-                        logger.info("\t\tNo input ranges left")
-
                     while input_ranges:
-                        logger.info(f"\t\t{processed_input_ranges=}")
+                        # logger.info(f"\t\t{processed_input_ranges=}")
                         logger.info(f"\t\t{input_ranges=}")
 
-                        seed_start, seed_end = input_ranges.pop()
+                        seed_range = input_ranges.pop()
+                        cuts = the_range.split(seed_range)
 
-                        if seed_start < the_range.start:
-                            if seed_end < the_range.start:
-                                logger.info("\t\tInput range completely below mapping range")
-                                unprocessed_input_ranges.append((seed_start, seed_end))
+                        logger.info(f"\t\tGenerated cuts: {cuts}")
 
-                            else:
-                                logger.info("\t\tInput range partially below mapping range - splitting")
-                                unprocessed_input_ranges.append((seed_start, the_range.start - 1))
-
-                                seed_start = the_range.start
-
-                        if the_range.start <= seed_start <= the_range.end:
-                            if seed_end < the_range.end:
-                                logger.info("\t\tInput range completely within mapping range")
-                                processed_input_ranges.append((the_map[seed_start], the_map[seed_end]))
+                        for cut in cuts:
+                            if cut.contained_within(the_range):
+                                processed_input_ranges.append(Range(the_map[cut.start], the_map[cut.end]))
+                                logger.info(f"\t\t\tProcessed cut: {cut} => {processed_input_ranges[-1]}")
 
                             else:
-                                logger.info("\t\tInput range partially within mapping range and beyond - splitting")
-                                processed_input_ranges.append((the_map[seed_start], the_map[the_range.end]))
-
-                                seed_start = the_range.end + 1
-
-                        if the_range.end < seed_start:
-                            logger.info("\t\tInput range completely above mapping range")
-                            unprocessed_input_ranges.append((seed_start, seed_end))
+                                logger.info(f"\t\t\tReinserted cut as is: {cut}")
+                                unprocessed_input_ranges.append(cut)
 
                     input_ranges = unprocessed_input_ranges
+                    unprocessed_input_ranges = []
 
-                    logger.info(f"\tEnded processing mapping range")
-                    logger.info("-------------------------------------------------------")
-
-                input_ranges = unprocessed_input_ranges + processed_input_ranges
+                input_ranges += processed_input_ranges
                 processed_input_ranges = []
-                unprocessed_input_ranges = []
 
-                logger.info(f"Ended processing mapping")
-                logger.info(f"Ranges: {input_ranges}")
-                logger.info(f"***************************************************************************")
-
-            logger.info(f"Ended processing initial input range")
-            logger.info(f"\t{input_ranges=}")
+            input_ranges = list(sorted(input_ranges, key=lambda x: x.start))
             final_ranges.extend(input_ranges)
-            logger.info("###################################################")
+            logger.info(f"Final ranges for this input range: {input_ranges}")
 
-        logger.info(f"\tFinal input ranges: {final_ranges}")
+        logger.info("##############################################################################################################")
+        logger.info(f"TOTAL Final input ranges: {final_ranges}")
+        logger.info("##############################################################################################################")
 
-        seeds = set(x[0] for x in final_ranges)
+        locations = set(x.start for x in final_ranges)
 
-    locations = []
+    else:
+        # Map each seed through the chain of maps, saving all the locations and getting the min
+        for seed in seeds:
+            for map in maps:
+                seed = map[seed]
 
-    # Map each seed through the chain of maps, saving all the locations and getting the min
-    for seed in seeds:
-        for map in maps:
-            seed = map[seed]
-
-        locations.append(seed)
+            locations.append(seed)
 
     return min(locations)
 
