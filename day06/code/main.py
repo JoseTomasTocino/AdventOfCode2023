@@ -1,4 +1,5 @@
 import logging
+from math import sqrt, ceil, floor
 
 logger = logging.getLogger(__name__)
 
@@ -28,5 +29,37 @@ def part_one(inp):
     return ways
 
 
-def part_two(inp):
-    pass
+def part_two(inp:str):
+    inp = inp.splitlines()
+    t = int(inp[0].split(":")[1].replace(" ", ""))
+    d = int(inp[1].split(":")[1].replace(" ", ""))
+
+    # (t - x) * x > d
+    # tx - x² > d
+    # tx -x² -d > 0
+    # x² - tx + d < 0
+    # --
+    # Para resolver, aplicamos la fórmula de la ecuación de segundo grado
+    # x = (t +- sqrt(t² -4d) / 2
+    # --
+    # Según el valor del argumento de la raíz, habrá o no solución real
+
+    if t*t - 4 * d < 0:
+        return 0
+
+    sol_a = (t + sqrt(t * t - 4 * d)) / 2
+    sol_b = (t - sqrt(t * t - 4 * d)) / 2
+
+    sol_a, sol_b = ceil(min(sol_a, sol_b)), floor(max(sol_a, sol_b))
+
+    logger.info(f"Sol A: {sol_a}")
+    logger.info(f"Sol B: {sol_b}")
+
+    return sol_b - sol_a + 1
+
+
+
+
+
+
+
