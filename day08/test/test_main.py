@@ -21,13 +21,24 @@ AAA = (BBB, BBB)
 BBB = (AAA, ZZZ)
 ZZZ = (ZZZ, ZZZ)"""
 
+sample3 = """LR
+
+11A = (11B, XXX)
+11B = (XXX, 11Z)
+11Z = (11B, XXX)
+22A = (22B, XXX)
+22B = (22C, 22C)
+22C = (22Z, 22Z)
+22Z = (22B, 22B)
+XXX = (XXX, XXX)"""
+
 
 def test_sample_input(caplog):
     caplog.set_level(logging.INFO)
 
     assert part_one(sample_input) == 2
     assert part_one(sample2) == 6
-    # assert part_two(sample_input) == None
+    assert part_two(sample3) == 6
 
 
 def test_big_input(caplog):
@@ -36,4 +47,4 @@ def test_big_input(caplog):
         content = f.read()
 
         assert part_one(content) == 13771
-        # assert part_two(content) == None
+        assert part_two(content) == 13129439557681
