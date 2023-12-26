@@ -1,7 +1,7 @@
 import logging
 import os.path
 
-from ..code.main import part_one, part_two, Hand, HandType
+from ..code.main import part_one, Hand, HandType, part_two
 
 logger = logging.getLogger(__name__)
 local_path = os.path.abspath(os.path.dirname(__file__))
@@ -35,11 +35,47 @@ def test_hand_sorting(caplog):
     assert Hand("QQQJA") > Hand("T55J5")
 
 
+def test_joker_variations(caplog):
+    caplog.set_level(logging.INFO)
+
+    # FourOfAKind becomes FiveOfAKind
+    assert Hand("AAAAJ", use_jokers=True).hand_type == HandType.FiveOfAKind
+    assert Hand("JJJJA", use_jokers=True).hand_type == HandType.FiveOfAKind
+
+    # FullHouse becomes FiveOfAkind
+    assert Hand("AAAJJ", use_jokers=True).hand_type == HandType.FiveOfAKind
+    assert Hand("AAJJJ", use_jokers=True).hand_type == HandType.FiveOfAKind
+
+    # ThreeOfAKind becomes FourOfAKind
+    assert Hand("T55J5", use_jokers=True).hand_type == HandType.FourOfAKind
+    assert Hand("JJJT5", use_jokers=True).hand_type == HandType.FourOfAKind
+
+    # TwoPair becomes FourOfAKind
+    assert Hand("22JJ3", use_jokers=True).hand_type == HandType.FourOfAKind
+
+    # TwoPair becomes FullHouse
+    assert Hand("2233J", use_jokers=True).hand_type == HandType.FullHouse
+
+    # OnePair becomes ThreeOfAKind
+    assert Hand("AA45J", use_jokers=True).hand_type == HandType.ThreeOfAKind
+
+    # HighCard becomes OnePair
+    assert Hand("J456K", use_jokers=True).hand_type == HandType.OnePair
+
+    assert Hand("AAJAA", use_jokers=True).hand_type == HandType.FiveOfAKind
+    assert Hand("AAAJJ", use_jokers=True).hand_type == HandType.FiveOfAKind
+    assert Hand("AAJJJ", use_jokers=True).hand_type == HandType.FiveOfAKind
+    assert Hand("23J32", use_jokers=True).hand_type == HandType.FullHouse
+    assert Hand("22JJ5", use_jokers=True).hand_type == HandType.FourOfAKind
+    assert Hand("KTJJT", use_jokers=True).hand_type == HandType.FourOfAKind
+    assert Hand("QQQJA", use_jokers=True).hand_type == HandType.FourOfAKind
+
+
 def test_sample_input(caplog):
     caplog.set_level(logging.INFO)
 
     assert part_one(sample_input) == 6440
-    # assert part_two(sample_input) == None
+    assert part_two(sample_input) == 5905
 
 
 def test_big_input(caplog):
@@ -48,4 +84,4 @@ def test_big_input(caplog):
         content = f.read()
 
         assert part_one(content) == 250474325
-        # assert part_two(content) == None
+        assert part_two(content) == 248909434
